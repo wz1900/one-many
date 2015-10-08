@@ -14,6 +14,10 @@ def get_target_provenance(filename):
         targetPro.add_provenance(line.strip());
     return target_dict ;
 '''
+def get_targets_karate():
+    end_list = ["29", "10", "4", "24", "27", "32", "2", "21", "16", "6"] ;
+    return end_list ;
+
 
 def get_edge_list(line):
     mylist = line.strip().split(",") ;
@@ -24,10 +28,22 @@ def get_edge_list(line):
 
     return res ;
 
+
 def get_tuplelist(file_name):
     tuplelist = [] ;
     mydict = {} ;
     lines = open(file_name).readlines() ;
+    for line in lines:
+        edgelist = get_edge_list(line) ;
+        for edge in edgelist:
+            mydict[edge] = True ;
+        tuplelist.append( edgelist ) ;
+    return [tuplelist, mydict] ;
+
+
+def get_tuplelist_traces(lines):
+    tuplelist = [] ;
+    mydict = {} ;
     for line in lines:
         edgelist = get_edge_list(line) ;
         for edge in edgelist:

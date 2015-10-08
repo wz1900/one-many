@@ -1,11 +1,14 @@
-from BasicFunction import get_edge_list ;
+from BasicFunction import get_edge_list, get_targets_karate ;
 
 class TargetProvenance:
-
     def __init__(self, nodeId):
         self.nodeId = nodeId ;
         self.prolist = [] ;
+        self.tracelist = [] ;
+
         self.edgedict = {} ;
+        self.degreedict = {} ;
+        self.upsetdict = {} ; # if a trace is upperset of another trace
 
     def add_provenance(self, mystr):
         edgelist = get_edge_list( mystr ) ;
@@ -13,6 +16,14 @@ class TargetProvenance:
             self.edgedict[edge] = True ;
 
         self.prolist.append( edgelist ) ;
+        self.tracelist.append( mystr ) ;
+
+    def read_provenance(self, lines):
+        for line in lines:
+            mylist = line.strip().split(",") ;
+            targetId = mylist[-1] ;
+            if(self.nodeId == targetId):
+                self.add_provenance(line.strip());
 
     def if_connected(self, all_edge_value):
         for edgelist in self.prolist:
@@ -24,28 +35,27 @@ class TargetProvenance:
                 if(res == True): return True ;
         return False ;
 
-def get_target_provenance(filename):
-    target_dict = {} ;
-    for line in open(filename).readlines():
-        mylist = line.strip().split(",") ;
-        targetId = mylist[-1] ;
-        print targetId ;
-        if(target_dict.has_key(targetId) == False):
-            print "----new target----"
-            target = TargetProvenance(targetId) ;
-            target_dict[targetId] = target ;
-
-        target = target_dict[targetId] ;
-        target.add_provenance(line.strip());
-    return target_dict ;
+def readProvenance(profilename, targetnodelist):
+    prolist = open(profilename).readlines() ;
+    targetProlist = [] ;
+    for target in targetnodelist:
+        targetPro = TargetProvenance(target) ;
+        targetPro.read_provenance(prolist) ;
+        #print targetPro.prolist ;
+        #print targetPro.edgedict ;
+        targetProlist.append(targetPro) ; 
+    return targetProlist ;
 
 if __name__ == "__main__":
-    filename = "data.txt"
-    target_dict = get_target_provenance(filename) ;
-    for t in target_dict.keys():
-        print t ;
-        print target_dict[t].prolist ;
-        print target_dict[t].edgedict ;
+    filename = "karate_provenance.txt"
+    prolist = open(filename).readlines() ;
+    targetlist = get_targets_karate() ;
+    for target in targetlist:
+        targetPro = TargetProvenance(target) ;
+        targetPro.read_provenance(prolist) ;
+        print targetPro.prolist ;
+        print targetPro.edgedict ;
+        print "------------ next target --------------" ;
 
     '''
     tProvenance = TargetProvenance('T1') ;
