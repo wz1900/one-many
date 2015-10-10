@@ -10,7 +10,7 @@ class TargetProvenance:
         self.degreedict = {} ;
         self.upsetdict = {} ; # if a trace is upperset of another trace
 
-    def add_provenance(self, mystr):
+    def _add_provenance(self, mystr):
         edgelist = get_edge_list( mystr ) ;
         for edge in edgelist:
             self.edgedict[edge] = True ;
@@ -23,16 +23,16 @@ class TargetProvenance:
             mylist = line.strip().split(",") ;
             targetId = mylist[-1] ;
             if(self.nodeId == targetId):
-                self.add_provenance(line.strip());
+                self._add_provenance(line.strip());
 
-    def if_connected(self, all_edge_value):
+    def if_connected(self, edge_value_dict):
         for edgelist in self.prolist:
             res = True ;
             for temp in edgelist:
-                if(all_edge_value[temp] == False):
+                if(edge_value_dict[temp] == False):
                     res = False ;
                     break ;
-                if(res == True): return True ;
+            if(res == True): return True ;
         return False ;
 
 def readProvenance(profilename, targetnodelist):
@@ -46,6 +46,18 @@ def readProvenance(profilename, targetnodelist):
         targetProlist.append(targetPro) ; 
     return targetProlist ;
 
+def get_connected_num(targetlist, edge_dict):
+    num = 0 ;
+    for target in targetlist:
+        if( target.if_connected(edge_dict) == True ): num = num + 1 ;
+    return num ;
+
+def get_tuple_list(targetlist):
+    res = [] ;
+    for target in targetlist:
+        for edge in target.edgedict.keys(): res.append(edge) ;
+    return list(set(res)) ;
+
 if __name__ == "__main__":
     filename = "karate_provenance.txt"
     prolist = open(filename).readlines() ;
@@ -57,13 +69,3 @@ if __name__ == "__main__":
         print targetPro.edgedict ;
         print "------------ next target --------------" ;
 
-    '''
-    tProvenance = TargetProvenance('T1') ;
-    s1 = "A,B,T1" ;
-    s2 = "A,C,T1" ;
-    tProvenance.add_provenance(s1) ;
-    tProvenance.add_provenance(s2) ;
-
-    print tProvenance.prolist ;
-    print tProvenance.edgedict ;
-    '''
