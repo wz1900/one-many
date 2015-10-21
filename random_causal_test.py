@@ -1,64 +1,78 @@
-import networkx as nx ;
 import numpy as np ;
 import timeit
-from ctypes import c_int
-from BasicFunction import get_targets_karate, get_tuplelist, get_value ;
+import random ;
+from BasicFunction import get_random_p, get_targets_karate, get_mc_result_list ;
 from TargetProvenance import get_tuple_list, get_connected_num, readProvenance ;
 
-def effect(term, targetlist, edge_value_dict):
-    edge_dict = edge_value_dict.copy() ;
+def effect(targetlist, edge_value_dict):
+    connect_num = get_connected_num(targetlist, edge_value_dict) ;
+    res_k_list = [] ;
+    # calculate 10% ---- 100%
+    for k in range(1, 11):
+        temp = int(len(targetlist)*k/10.0) ;
+        if( connect_num>= temp ): res_k_list.append(True) ;
+        else: res_k_list.append(False) ;
+    return res_k_list ;
 
-    #------- set edge true ----------
-    edge_dict[term] = True ;
-    set_true_num = get_connected_num(targetlist, edge_dict) ;
-
-    #------- set edge false ---------
-    edge_dict[term] = False ;
-    set_false_num = get_connected_num(targetlist, edge_dict) ;
-
-    result_k_list = [] ;
-    for k in range(1,len(targetlist)+1):
-        flag = 0 ;
-        if( set_true_num>=k and set_false_num<k ): flag = 1 ;
-        result_k_list.append(flag) ;
-
-    return result_k_list ;
-
-def run_once(tuplelist, targetlist, random_list):
+def assign_edge_value(tuplelist, go_1=0.5):
     edge_value_dict = {} ;
     for i in range(len(tuplelist)):
-        if( random_list[i] == 0 ): edge_value_dict[tuplelist[i]] = False ;
+        temp = random.random() ;
+        if( temp >= go_1 ): edge_value_dict[tuplelist[i]] = False ;
         else: edge_value_dict[ tuplelist[i] ] = True ;
 
-    term_dict = {} ;
-    for term in tuplelist:
-        result_k_list = effect(term, targetlist, edge_value_dict) ;
-        term_dict[term] = result_k_list ;
-    return term_dict ;
+    return edge_value_dict ;
 
-def run_mc(tuplelist, targetlist, mc_num):
-    sum_term_dict = {} ;
-    for term in tuplelist:
-        sum_term_dict[term] = [0]*len(targetlist) ;
+def run_mc(targetlist, mc_num, k):
+    target_num = len(targetlist) ;
+    tuplelist = get_tuple_list(targetlist) ;
+    print "tuple num:", len(tuplelist) ;
+    go_1 = 0.5 #get_random_p(target_num, k) ;
+    print "p is: ", go_1 ;
+
+    tuple_dict_true = {} ;
+    flag_dict_true = {} ;
+    flag_dict_false = {} ;
+    for key in tuplelist:
+        tuple_dict_true[key] = 0 ; 
+        for i in range(1, 11):
+            temp = int(target_num*i/10.0) ;
+            mytuple = (key, temp) ;
+            flag_dict_true[mytuple] = 0 ;
+            flag_dict_false[mytuple] = 0 ;
 
     for i in range(mc_num):
-        if(i%100 ==0 ): print "--------mc_num:", i, "-------------"
-        random_list_1 = np.random.randint(2, size=len(tuplelist)) ;
-        term_dict = run_once(tuplelist, targetlist, random_list_1) ;
-        for term in tuplelist:
-            #print "term", term_dict[term] ;
-            #print "sum_term", term, sum_term_dict[term] ;
-            temp = [ x + y for x, y in zip(term_dict[term], sum_term_dict[term]) ] ;
-            #print "added:", temp ;
-            sum_term_dict[term] = temp ;
-    return sum_term_dict ;
+        if(i%1000 ==0 ): print "--------mc_num:", i, "-------------"
+        edge_value_dict = assign_edge_value(tuplelist, go_1) ;
+        res_effect_list = effect(targetlist, edge_value_dict) ;
+        for edge in edge_value_dict.keys():
+            if( edge_value_dict[edge] == True ): tuple_dict_true[edge] += 1 ;
+            for i in range(1, 11):
+                temp = int(target_num*i/10.0) ;
+                mytuple = (edge, temp) ;
+                if( res_effect_list[i-1] == True ):
+                    if( edge_value_dict[edge] == True ): flag_dict_true[mytuple] += 1 ;
+                    else: flag_dict_false[mytuple] += 1 ;
 
-filename = "provenance_dataset/karate_provenance.txt";
-targetnodelist = get_targets_karate() ;
-targetlist = readProvenance(filename, targetnodelist) ;
-tuplelist = get_tuple_list(targetlist) ;
-print "tuple num:", len(tuplelist) ;
-sum_term_dict = run_mc(tuplelist, targetlist, mc_num=100000) ;
-for term in sum_term_dict.keys():
-    #print term, " ".join(sum_term_dict[term]) ;
-    print term, str(sum_term_dict[term]).strip('[]')
+    res_dict = {} ;
+    for edge in tuplelist:
+        for i in range(1, 11):
+            temp = int(target_num*i/10.0) ;
+            mytuple = (edge, temp) ;
+            res_dict[mytuple] = flag_dict_true[mytuple]/float(tuple_dict_true[edge]) - flag_dict_false[mytuple]/(mc_num-float(tuple_dict_true[edge])) ;
+
+    return res_dict ;
+
+if __name__ == "__main__":
+    filename = "provenance_dataset/karate_provenance.txt";
+    targetnodelist = get_targets_karate() ;
+    targetlist = readProvenance(filename, targetnodelist) ;
+
+    start = timeit.default_timer() ;
+    res_dict = run_mc(targetlist, mc_num=100, k=2) ;
+    stop = timeit.default_timer() ;
+    print stop-start ;
+
+    lines = get_mc_result_list(res_dict, targetlist, get_tuple_list(targetlist)) ; 
+    for line in lines:
+        print " ".join(line) ;

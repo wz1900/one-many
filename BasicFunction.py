@@ -14,10 +14,38 @@ def get_target_provenance(filename):
         targetPro.add_provenance(line.strip());
     return target_dict ;
 '''
+
+def get_mc_result_list(mydict, targetlist, tuplelist):
+    lines = [] ;
+    for edge in tuplelist:
+        line = [] ;
+        line.append(edge) ;
+        #print edge ,
+        for i in range(1, 11):
+            temp = int(len(targetlist)*i/10.0) ;
+            mytuple = (edge, temp) ;
+            #print round(mydict[mytuple],8),
+            line.append(str(mydict[mytuple])) ;
+        #print ""
+        lines.append( " ".join(line) ) ;
+    return lines ;
+
+def get_random_p(num, k):
+    p = 0.5 ;
+    myvalue = float(k)/num ;
+    mylist = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9] ;
+    min_value = 10000000000 ;
+    for term in mylist:
+        temp = abs( myvalue - term ) ;
+        if( temp < min_value ): 
+            min_value = temp ;
+            p = term ; 
+    return p ;
+
+
 def get_targets_karate():
     end_list = ["29", "10", "4", "24", "27", "32", "2", "21", "16", "6"] ;
     return end_list ;
-
 
 def get_edge_list(line):
     mylist = line.strip().split(",") ;
@@ -63,8 +91,9 @@ def get_value(tuplelist, mydict, term, kType=1):
         
     return False ;
 
-
 if __name__ == "__main__":
+    p = get_random_p(100, 99) ;
+    print p ;
     filename = "data.txt" ;
     #target_dict = get_target_provenance(filename) ;
     #print target_dict ; 
