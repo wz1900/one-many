@@ -33,7 +33,7 @@ def get_mc_result_list(mydict, targetlist, tuplelist):
 def get_random_p(num, k):
     p = 0.5 ;
     myvalue = float(k)/num ;
-    mylist = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9] ;
+    mylist = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8] ;
     min_value = 10000000000 ;
     for term in mylist:
         temp = abs( myvalue - term ) ;

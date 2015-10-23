@@ -60,7 +60,7 @@ def run_mc(tuplelist, targetlist, mc_num):
     #mc_num = mc_num/2 ;
     for i in range(mc_num):
         if(i%1000 ==0 ): print "--------mc_num:", i, "-------------"
-        edge_value_dict = get_random_list(len(tuplelist), go_1=0.2) ;
+        edge_value_dict = get_random_list(len(tuplelist), go_1=0.9) ;
         term_dict = run_once(tuplelist, targetlist, edge_value_dict) ;
         for term in tuplelist:
             temp = [ x + y for x, y in zip(term_dict[term], sum_term_dict[term]) ] ;
@@ -81,7 +81,7 @@ targetlist = readProvenance(filename, targetnodelist) ;
 tuplelist = get_tuple_list(targetlist) ;
 print "tuple num:", len(tuplelist) ;
 start = timeit.default_timer() ;
-sum_term_dict = run_mc(tuplelist, targetlist, mc_num=1000) ;
+sum_term_dict = run_mc(tuplelist, targetlist, mc_num=100) ;
 stop = timeit.default_timer() ;
 print stop-start ;
 for term in sum_term_dict.keys():

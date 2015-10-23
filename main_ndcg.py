@@ -28,15 +28,16 @@ def evaluate(ground_truth_lines, test_mc_lines, k, perm_num=1):
     testG = get_ground_truth_dict(test_mc_lines, k) ;
     
     res = perm_rank(testG, gold_dict, perm_num) ;
-    print res ;
+    return res ;
 
 
 if __name__ == "__main__":
-    k = 5 ;
+    k = 9 ;
 
     final_mc_file = "converge_file_better/res_1000000.txt" ;
     ground_truth_lines = [x.strip() for x in open(final_mc_file).readlines()] ;
 
-    test_mc_file = "converge_file_better/res_100.txt" ;
+    test_mc_file = "temp_0.9_100.txt" #"converge_file_better/res_100.txt" ;
     test_mc_lines = open(test_mc_file).readlines() ;
     res = evaluate(ground_truth_lines, test_mc_lines, k, perm_num=10000) ;
+    print res ;

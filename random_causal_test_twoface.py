@@ -23,11 +23,18 @@ def assign_edge_value(tuplelist, go_1=0.5):
         else: edge_value_dict[ tuplelist[i] ] = True ;
     return edge_value_dict ;
 
+def assign_edge_value_opposite(edge_value_dict):
+    res_dict = {} ;
+    for key in edge_value_dict.keys():
+        if( edge_value_dict[key] == True ): res_dict[key]=False ;
+        else: res_dict[key]=True ;
+    return res_dict ;
+
 def run_mc(targetlist, mc_num, k):
     target_num = len(targetlist) ;
     tuplelist = get_tuple_list(targetlist) ;
     #print "tuple num:", len(tuplelist) ;
-    go_1 = get_random_p(target_num, k) ;
+    go_1 = 0.5 # get_random_p(target_num, k) ;
     #print "p is: ", go_1 ;
 
     tuple_dict_true = {} ;
@@ -41,8 +48,8 @@ def run_mc(targetlist, mc_num, k):
             flag_dict_true[mytuple] = 0 ;
             flag_dict_false[mytuple] = 0 ;
 
-    for i in range(mc_num):
-        #if(i%1000 ==0 ): print "--------mc_num:", i, "-------------"
+    for t in range(mc_num):
+        #if(t%1000 ==0 ): print "--------mc_num:", t, "-------------"
         edge_value_dict = assign_edge_value(tuplelist, go_1) ;
         res_effect_list = effect(targetlist, edge_value_dict) ;
         for edge in edge_value_dict.keys():
@@ -54,6 +61,17 @@ def run_mc(targetlist, mc_num, k):
                     if( edge_value_dict[edge] == True ): flag_dict_true[mytuple] += 1 ;
                     else: flag_dict_false[mytuple] += 1 ;
 
+        edge_value_dict = assign_edge_value_opposite(edge_value_dict.copy()) ;
+        res_effect_list = effect(targetlist, edge_value_dict) ;
+        for edge in edge_value_dict.keys():
+            if( edge_value_dict[edge] == True ): tuple_dict_true[edge] += 1 ;
+            for i in range(1, 11):
+                temp = int(target_num*i/10.0) ;
+                mytuple = (edge, temp) ;
+                if( res_effect_list[i-1] == True ):
+                    if( edge_value_dict[edge] == True ): flag_dict_true[mytuple] += 1 ;
+                    else: flag_dict_false[mytuple] += 1 ;
+    mc_num = mc_num * 2 ;    
     res_dict = {} ;
     for edge in tuplelist:
         for i in range(1, 11):
